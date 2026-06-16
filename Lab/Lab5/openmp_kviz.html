@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenMP Kviz – Paralelno Programiranje</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0f1117;
+    --surface:  #1a1d27;
+    --card:     #20243a;
+    --border:   #2e3348;
+    --accent:   #6c63ff;
+    --accent2:  #00d4aa;
+    --danger:   #ff4757;
+    --warn:     #ffa502;
+    --text:     #e8eaf0;
+    --muted:    #8890aa;
+    --code-bg:  #141720;
+    --correct:  #00d4aa;
+    --wrong:    #ff4757;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0f1117 0%, #1a1d27 50%, #12162a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 1.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 50% -20%, rgba(108,99,255,.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(108,99,255,.12);
+    border: 1px solid rgba(108,99,255,.3);
+    padding: .3rem .8rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+  }
+  header h1 {
+    font-size: clamp(1.6rem, 5vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    background: linear-gradient(135deg, #fff 30%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: .5rem;
+  }
+  header p {
+    color: var(--muted);
+    font-size: .95rem;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: .75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .progress-bar-track {
+    flex: 1;
+    height: 5px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px;
+    transition: width .4s ease;
+    width: 0%;
+  }
+  .progress-label {
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 5rem;
+  }
+
+  /* ── QUESTION CARD ── */
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+    transition: border-color .2s;
+    position: relative;
+  }
+  .question-card.answered-correct { border-color: var(--correct); }
+  .question-card.answered-wrong   { border-color: var(--wrong); }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .q-number {
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--accent);
+    background: rgba(108,99,255,.12);
+    border: 1px solid rgba(108,99,255,.25);
+    border-radius: 4px;
+    padding: .25rem .55rem;
+    white-space: nowrap;
+    margin-top: .1rem;
+  }
+  .q-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    font-family: var(--mono);
+    font-size: .82rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+    color: #c8d3f5;
+  }
+  .code-block .kw  { color: #bb80b3; }
+  .code-block .pp  { color: #6c9ef8; }
+  .code-block .num { color: #f7c948; }
+  .code-block .cm  { color: #636d8a; font-style: italic; }
+  .code-block .fn  { color: #00d4aa; }
+
+  /* ── IMAGE SLOT ── */
+  .img-slot {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    margin: .75rem 0;
+    color: var(--muted);
+    font-size: .8rem;
+    font-family: var(--mono);
+  }
+  .img-slot img { max-width: 100%; border-radius: 6px; display: block; margin: 0 auto; }
+
+  /* ── OPTIONS ── */
+  .options { display: flex; flex-direction: column; gap: .6rem; margin-top: 1rem; }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .85rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--surface);
+    user-select: none;
+  }
+  .option:hover:not(.disabled) {
+    border-color: var(--accent);
+    background: rgba(108,99,255,.07);
+  }
+  .option.selected  { border-color: var(--accent); background: rgba(108,99,255,.12); }
+  .option.correct   { border-color: var(--correct); background: rgba(0,212,170,.1); }
+  .option.wrong     { border-color: var(--wrong);   background: rgba(255,71,87,.1); }
+  .option.disabled  { cursor: default; }
+  .option.reveal-correct { border-color: var(--correct); background: rgba(0,212,170,.07); }
+
+  .opt-radio {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .option.selected  .opt-radio { border-color: var(--accent); background: var(--accent); }
+  .option.correct   .opt-radio { border-color: var(--correct); background: var(--correct); }
+  .option.wrong     .opt-radio { border-color: var(--wrong);   background: var(--wrong); }
+  .option.reveal-correct .opt-radio { border-color: var(--correct); }
+
+  .opt-radio::after {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #fff;
+    display: none;
+  }
+  .option.selected .opt-radio::after,
+  .option.correct  .opt-radio::after,
+  .option.wrong    .opt-radio::after { display: block; }
+
+  .opt-label { font-size: .93rem; color: var(--text); }
+  .opt-icon  { margin-left: auto; font-size: 1.1rem; }
+
+  /* ── EXPLANATION ── */
+  .explanation {
+    display: none;
+    margin-top: 1rem;
+    padding: .9rem 1.1rem;
+    border-radius: 8px;
+    font-size: .88rem;
+    line-height: 1.6;
+    border-left: 3px solid;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-exp { background: rgba(0,212,170,.08); border-color: var(--correct); color: #7eefd7; }
+  .explanation.wrong-exp   { background: rgba(255,71,87,.08); border-color: var(--wrong);   color: #ff8a95; }
+
+  
+  .btn-check {
+    margin-top: 1rem;
+    padding: .6rem 1rem;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: .88rem;
+  }
+  .btn-check:hover { border-color: var(--accent); }
+
+
+  /* ── SECTION DIVIDER ── */
+  .section-divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 2.5rem 0 1.5rem;
+  }
+  .section-divider span {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    white-space: nowrap;
+  }
+  .section-divider hr { flex: 1; border: none; border-top: 1px solid var(--border); }
+
+  /* ── SUBMIT BUTTON ── */
+  .btn-submit {
+    display: block;
+    width: 100%;
+    max-width: 380px;
+    margin: 2.5rem auto 0;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--accent), #9b8fff);
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    letter-spacing: .01em;
+    transition: opacity .2s, transform .15s;
+    box-shadow: 0 4px 20px rgba(108,99,255,.35);
+  }
+  .btn-submit:hover { opacity: .9; transform: translateY(-1px); }
+  .btn-submit:active { transform: translateY(0); }
+
+  /* ── RESULTS PANEL ── */
+  #results-panel {
+    display: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    margin: 2rem 0;
+    text-align: center;
+  }
+  #results-panel.show { display: block; }
+  .results-score {
+    font-size: 4rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: .5rem;
+  }
+  .results-label { color: var(--muted); font-size: .95rem; margin-bottom: 1.5rem; }
+  .results-breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .rb-item { text-align: center; }
+  .rb-num  { font-size: 1.8rem; font-weight: 700; font-family: var(--mono); }
+  .rb-txt  { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+  .rb-correct .rb-num { color: var(--correct); }
+  .rb-wrong   .rb-num { color: var(--wrong); }
+  .btn-retry {
+    display: inline-block;
+    padding: .75rem 2rem;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: .9rem;
+    transition: border-color .15s;
+  }
+  .btn-retry:hover { border-color: var(--accent); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .question-card { padding: 1.25rem; }
+    .code-block { font-size: .75rem; }
+    header { padding: 2rem 1rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">#pragma omp parallel</div>
+  <h1>OpenMP Kviz</h1>
+  <p>Paralelno programiranje – Lab 5 &nbsp;|&nbsp; Proveri svoje znanje o OpenMP direktivama i klauzulama</p>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progress-fill"></div>
+  </div>
+  <div class="progress-label" id="progress-label">0 / 0</div>
+</div>
+
+<main>
+  <div id="quiz-container"></div>
+  <button class="btn-submit" id="btn-submit" onclick="submitQuiz()">Predaj kviz</button>
+  <div id="results-panel">
+    <div class="results-score" id="score-pct"></div>
+    <div class="results-label" id="score-text"></div>
+    <div class="results-breakdown">
+      <div class="rb-item rb-correct"><div class="rb-num" id="r-correct">0</div><div class="rb-txt">Tačno</div></div>
+      <div class="rb-item rb-wrong">  <div class="rb-num" id="r-wrong">0</div>  <div class="rb-txt">Netačno</div></div>
+      <div class="rb-item"><div class="rb-num" id="r-total" style="color:var(--text)">0</div><div class="rb-txt">Ukupno</div></div>
+    </div>
+    <button class="btn-retry" onclick="retryQuiz()">↺ Pokušaj ponovo</button>
+  </div>
+</main>
+
+<script>
+// ──────────────────────────────────────────────────────────────
+//  PITANJA
+//  Za pitanja koja imaju slike: dodaj src u polje "img" kao
+//  relativnu putanju ili URL, npr. img: "slike/q1.png"
+//  Polje "img" možeš ostaviti null ako slika nije potrebna.
+// ──────────────────────────────────────────────────────────────
+const questions = [
+
+  // ══════════ SEKCIJA 1: Osnove direktiva ══════════
+  {
+    section: "Osnove OpenMP direktiva",
+    text: "Direktiva <code>critical</code>:",
+    code: null, img: null,
+    options: [
+      "vraća grešku ukoliko više linija pristupaju naredbi",
+      "preskače izvršenje sledeće naredbe",
+      "dozvoljava jednoj niti da pristupi naredbi koja sledi",
+      "postavlja prioritet sledećoj naredbi"
+    ],
+    correct: 2,
+    explanation: "<b>critical</b> sekcija osigurava da samo <em>jedna nit u jednom trenutku</em> izvršava kritični blok koda. Ostale niti čekaju dok prva nit ne izađe iz sekcije."
+  },
+  {
+    section: null,
+    text: "Direktiva <code>barrier</code>:",
+    code: null, img: null,
+    options: [
+      "zaustavlja izvršenje dok sve niti ne izvrše deo koda ispred direktive",
+      "(prazna opcija)",
+      "sprečava izvršenje sledeće naredbe, dok bar jedna nit ne izvrši naredbu",
+      "zaustavlja izvršenje paralelnog bloka i prelazi na sekvencijalni kod"
+    ],
+    correct: 0,
+    explanation: "<b>barrier</b> je tačka sinhronizacije – sve niti moraju stići do nje pre nego što ijedna od njih nastavi dalje."
+  },
+  {
+    section: null,
+    text: "Odredba <code>nowait</code>:",
+    code: null, img: null,
+    options: [
+      "ne čeka izvršenje trenutne naredbe, već prelazi na sledeću",
+      "se oslobađa barijere koja je postavljena nakon trenutnog bloka",
+      "se oslobađa barijere koja je postavljena nakon prethodnog bloka",
+      "postavlja veći prioritet naredbama koje slede"
+    ],
+    correct: 1,
+    explanation: "<b>nowait</b> ukida implicitnu barijeru na kraju <code>for</code> ili <code>single</code> konstrukta, pa nit može nastaviti bez čekanja ostalih."
+  },
+  {
+    section: null,
+    text: "Nakon završetka paralelnog regiona:",
+    code: null, img: null,
+    options: [
+      "(prazno)",
+      "nastavlja se sa izvršenjem sekvencijalnog dela programa",
+      "postavlja se barijera koja čeka da sve niti završe izvršenje koda u paralelnom regionu",
+      "sekvencijalni deo programa nastavlja sa izvršenjem, a rezultati iz niti se obrađuju po pristizanju"
+    ],
+    correct: 2,
+    explanation: "Na kraju paralelnog regiona postoji <em>implicitna barijera</em> – sve niti moraju završiti pre nego što master nit nastavi sekvencijalni deo."
+  },
+
+  // ══════════ SEKCIJA 2: Klauzule privatnosti ══════════
+  {
+    section: "Klauzule privatnosti",
+    text: "Sve promenjive definisane <b>van</b> paralelnog bloka su:",
+    code: null, img: null,
+    options: ["private", "lastprivate", "firstprivate", "shared"],
+    correct: 3,
+    explanation: "Podrazumevano, promenjive definisane van paralelnog bloka su <b>shared</b> – sve niti pristupaju istoj memorijskoj lokaciji."
+  },
+  {
+    section: null,
+    text: "Odredba <code>firstprivate</code>:",
+    code: null, img: null,
+    options: [
+      "se ponaša isto kao i private odredba",
+      "se ponaša slično private odredbi, uz izmenu da se promeniva inicijalizuje starom vrednošću na ulazu u paralelni blok",
+      "se ponaša slično private odredbi, osim što se vrednost iz paralelnog bloka upisuje u promenjivanu na kraju izvršenja paralelnog bloka",
+      "se ponaša kao private ključna reč u C-u"
+    ],
+    correct: 1,
+    explanation: "<b>firstprivate</b> kreira privatnu kopiju za svaku nit, ali je <em>inicijalizuje vrednošću</em> koju promenljiva ima pre ulaska u paralelni blok."
+  },
+  {
+    section: null,
+    text: "Odredba <code>lastprivate</code>:",
+    code: null, img: null,
+    options: [
+      "se ponaša slično private odredbi, uz izmenu da se promeniva inicijalizuje starom vrednošću na ulazu u paralelni blok",
+      "se ponaša isto kao i private odredba",
+      "se ponaša slično private odredbi, osim što se vrednost iz paralelnog bloka upisuje u promenjivanu na kraju izvršenja paralelnog bloka",
+      "se ponaša kao private ključna reč u C-u"
+    ],
+    correct: 2,
+    explanation: "<b>lastprivate</b> kreira privatnu kopiju, a na kraju paralelnog bloka <em>vrednost iz poslednje iteracije</em> (ili poslednjeg zadatka) upisuje se nazad u originalnu promenljivu."
+  },
+  {
+    section: null,
+    text: "Odredba <code>reduction(op:variable)</code>:",
+    code: null, img: null,
+    options: [
+      "postavlja vrednost promenjivoj (variable) u zavisnosti od operacije (op)",
+      "postavlja vrednost promenjivoj (variable) na 0",
+      "postavlja vrednost promenjivoj (variable) iz promenjive definisane van paralelnog bloka",
+      "(prazno)"
+    ],
+    correct: 0,
+    explanation: "<b>reduction</b> kreira privatne kopije za svaku nit, a na kraju kombinuje rezultate koristeći zadatu operaciju (npr. +, *, min, max) u originalnu promenljivu."
+  },
+
+  // ══════════ SEKCIJA 3: Zadaci sa kodom – single/barrier ══════════
+  {
+    section: "Analiza koda – sinhronizacija",
+    text: "Koja od datih tvrdnji je tačna, ako se posmatra OpenMP primer u nastavku?",
+    code: `#pragma omp parallel
+{
+    do_something();
+    #pragma omp single
+    do_something_else();
+}`,
+    img: null,
+    options: [
+      "Funkciju do_something_else() izvršiće sve niti",
+      "Funkciju do_something_else() izvršiće samo jedna nit, ali nije unapred poznato koja je to nit",
+      "Funkciju do_something_else() preskočiće sve niti osim one sa indeksom 1",
+      "Funkciju do_something_else() izvršiće samo nit sa identifikatorom 0"
+    ],
+    correct: 1,
+    explanation: "<b>single</b> konstrukt garantuje da blok izvršava <em>samo jedna</em> nit – ali OpenMP ne specificira koja (nije nužno master/nit 0)."
+  },
+  {
+    section: null,
+    text: "Da li će nakon izvršenog paralelnog bloka da bude odštampano <b>24</b>?",
+    code: `int i = 1;
+#pragma omp parallel for private(m)
+for (m = 2; m < 5; m++)
+{
+    #pragma omp barrier
+    i *= m;
+}
+printf("%d", &i);`,
+    img: null,
+    options: ["a. Ne.", "b. Da."],
+    correct: 1,
+    explanation: "Svaka nit ima privatnu kopiju <code>m</code>, ali <code>i</code> je <b>shared</b>. Pošto sve niti modifikuju <code>i</code> (2×3×4=24) uz barijeru unutar petlje, rezultat je 24."
+  },
+  {
+    section: null,
+    text: "Da li će nakon izvršenog paralelnog bloka da bude odštampano <b>5</b>?",
+    code: `int i = 1;
+#pragma omp parallel for lastprivate(i) private(m)
+for (m = 2; m < 5; m++)
+{
+    #pragma omp barrier
+    i = m;
+}
+printf("%d", i);`,
+    img: null,
+    options: ["a. Ne.", "b. Da."],
+    correct: 0,
+    explanation: "Sa <b>lastprivate(i)</b>, vrednost <code>i</code> nakon petlje odgovara poslednjoj iteraciji. Poslednja iteracija je <code>m=4</code>, pa je <code>i=4</code>, ne 5."
+  },
+  {
+    section: null,
+    text: "Da li će nakon izvršenog paralelnog bloka da bude odštampano <b>45</b>?",
+    code: `int i = 1;
+#pragma omp parallel for private(i, m)
+for (m = 1; m < 10; m++)
+{
+    #pragma omp critical
+    i *= m;
+}
+printf("%d", &i);`,
+    img: null,
+    options: ["a. Da.", "b. Ne."],
+    correct: 1,
+    explanation: "<code>i</code> je deklarisana kao <b>private</b> – svaka nit ima svoju kopiju inicijalizovanu na neodređenu vrednost (ne na 1). Vrednost van paralelnog bloka ostaje <code>i=1</code>. Neće biti 45."
+  },
+  {
+    section: null,
+    text: "Da li će nakon izvršenog paralelnog bloka da bude odštampano <b>45</b>?",
+    code: `int i = 0;
+#pragma omp parallel for private(m)
+for (m = 0; m < 10; m++)
+{
+    #pragma omp critical
+    i += m;
+}
+printf("%d", i);`,
+    img: null,
+    options: ["a. Ne.", "b. Da."],
+    correct: 1,
+    explanation: "<code>i</code> je <b>shared</b>, a <code>critical</code> sprečava race condition. Svaka nit dodaje svoju vrednost m (0+1+2+...+9 = 45). Rezultat je 45."
+  },
+
+  // ══════════ SEKCIJA 4: Reduction zadaci ══════════
+  {
+    section: "Reduction klauzula – izračunavanja",
+    text: "Šta će od ponuđenog sledeći OpenMP kod prikazati?<br><small>int t = 2; omp_set_num_threads(4); reduction(+:t); { t += 3; }</small>",
+    code: `int t = 2;
+omp_set_num_threads(4);
+#pragma omp parallel reduction(+:t)
+{
+    t += 3;
+}
+printf("Value of t is %d", t);`,
+    img: null,
+    options: [
+      "Value of t is 14",
+      "Value of t is 6",
+      "Value of t is 12",
+      "Value of t is 81",
+      "Value of t is 162"
+    ],
+    correct: 0,
+    explanation: "Reduction(+) inicijalizuje svaku privatnu kopiju na <b>0</b> (neutralni element za +). Svaka od 4 niti dodaje 3, ukupno +12. Finalna vrednost: 2 + 12 = <b>14</b>."
+  },
+  {
+    section: null,
+    text: "Šta će od ponuđenog sledeći OpenMP kod prikazati?<br><small>int t = 2; omp_set_num_threads(4); reduction(*:t); { t += 2; }</small>",
+    code: `int t = 2;
+omp_set_num_threads(4);
+#pragma omp parallel reduction(*:t)
+{
+    t += 2;
+}
+printf("Value of t is %d", t);`,
+    img: null,
+    options: [
+      "Value of t is 14",
+      "Value of t is 81",
+      "Value of t is 12",
+      "Value of t is 6",
+      "Value of t is 162"
+    ],
+    correct: 4,
+    explanation: "Reduction(*) inicijalizuje privatne kopije na <b>1</b>. Svaka nit radi: privatna_t = 1, pa 1 += 2 = 3. Finalno: t = 2 × 3 × 3 × 3 × 3 = 2 × 81 = <b>162</b>."
+  },
+  {
+    section: null,
+    text: "Koja od datih tvrdnji je tačna? (reduction(*:val), 2 niti)",
+    code: `int val = 10;
+#pragma omp parallel for reduction(*:val)
+for(int i=1; i<=4; ++i)
+{
+    val *= i;
+}`,
+    img: null,
+    options: [
+      "a. 240",
+      "b. 2400",
+      "c. 24"
+    ],
+    correct: 0,
+    explanation: "Reduction(*) inicijalizuje privatne kopije na 1. Petlja od 1 do 4 računa 1×2×3×4=24 po niti (podeljeno u 2 niti, svaka dobija deo). Finalno: val = 10 × 24 = <b>240</b>."
+  },
+  {
+    section: null,
+    text: "Koja od datih tvrdnji je tačna? (reduction(+:val), 2 niti)",
+    code: `int val = 10;
+#pragma omp parallel for reduction(+:val)
+for(int i=1; i<=4; ++i)
+{
+    val += i;
+}`,
+    img: null,
+    options: [
+      "a. 30",
+      "b. 10",
+      "c. 20"
+    ],
+    correct: 2,
+    explanation: "Reduction(+) inicijalizuje privatne kopije na 0. Suma 1+2+3+4=10. Finalno: val = 10 + 10 = <b>20</b>."
+  },
+  {
+    section: null,
+    text: "Šta će prikazati sledeći kod? A = {4, 6, 7, 3, 5, 2}, n = 6",
+    code: `int total = 3;
+#pragma omp parallel for reduction(+:total)
+for (int i = 0; i < n; i++) {
+    total += a[i];
+}
+printf("%d", total);`,
+    img: null,
+    options: ["a. 27", "b. 17", "c. 20", "d. 30"],
+    correct: 3,
+    explanation: "Suma elemenata: 4+6+7+3+5+2 = 27. total počinje sa 3, pa je finalni rezultat 3 + 27 = <b>30</b>."
+  },
+  {
+    section: null,
+    text: "Šta će prikazati sledeći kod? A = {2, 6, 8, 3}, n = 4",
+    code: `int total = 2;
+#pragma omp parallel for reduction(+:total)
+for (int i = 0; i < n; i++) {
+    total += a[i];
+}
+printf("%d", total);`,
+    img: null,
+    options: ["a. 21", "b. 576", "c. 288", "d. 19"],
+    correct: 0,
+    explanation: "Suma elemenata: 2+6+8+3 = 19. total počinje sa 2, pa je finalni rezultat 2 + 19 = <b>21</b>."
+  },
+
+  // ══════════ SEKCIJA 5: lastprivate zadaci ══════════
+  {
+    section: "lastprivate – analiza koda",
+    text: "Šta će od ponuđenog sledeći OpenMP kod prikazati?",
+    code: `n = 3;
+#pragma omp parallel for private(i) lastprivate(total)
+for (i = 0; i < n; i++)
+{
+    total = i*i;
+}
+printf("%d", total);`,
+    img: null,
+    options: ["a. 6", "b. 0", "c. 3", "d. 4", "e. 9"],
+    correct: 3,
+    explanation: "<b>lastprivate(total)</b> upisuje vrednost iz poslednje iteracije. Poslednja iteracija: i=2, total=2×2=<b>4</b>."
+  },
+  {
+    section: null,
+    text: "Šta će od ponuđenog sledeći OpenMP kod prikazati? (n=4)",
+    code: `n = 4;
+#pragma omp parallel for private(i) lastprivate(total)
+for (i = 0; i < n; i++)
+{
+    total = i*i;
+}
+printf("%d", total);`,
+    img: null,
+    options: ["a. 3", "b. 4", "c. 0", "d. 9", "e. 6"],
+    correct: 3,
+    explanation: "Poslednja iteracija: i=3, total=3×3=<b>9</b>."
+  },
+
+  // ══════════ SEKCIJA 6: firstprivate zadaci ══════════
+  {
+    section: "firstprivate – analiza koda",
+    text: "Koja od datih tvrdnji je tačna?",
+    code: `int a = 100;
+#pragma omp parallel for private(i) firstprivate(a)
+for (i=0; i<n; i++)
+{
+    a = i+1;
+}
+// vrednost a?`,
+    img: null,
+    options: [
+      "a. Promenjiva a će nakon izvršenog paralelnog bloka da ima vrednost 0",
+      "b. Promenjiva a će nakon izvršenog paralelnog bloka da ima vrednost 100",
+      "c. Promenjiva a će nakon izvršenog paralelnog bloka da ima vrednost n"
+    ],
+    correct: 1,
+    explanation: "<b>firstprivate</b> znači privatna kopija inicijalizovana na 100. Originalna promenljiva <code>a</code> van bloka se NE menja – ostaje <b>100</b>."
+  },
+  {
+    section: null,
+    text: "Šta će od ponuđenog sledeći OpenMP kod prikazati, ako se izvrši nad 4 niti?",
+    code: `int a = 5;
+#pragma omp parallel firstprivate(a)
+{
+    printf("%d ", a);
+    a = omp_get_thread_num() + 3;
+    printf("%d", a);
+}`,
+    img: null,
+    options: [
+      "a. Nit 0: 5 0 / Nit 1: 5 1 / Nit 2: 5 2 / Nit 3: 5 3",
+      "b. Nit 0: 3 3 / Nit 1: 4 4 / Nit 2: 5 5 / Nit 3: 6 6",
+      "c. Nit 0: 5 3 / Nit 1: 5 4 / Nit 2: 5 5 / Nit 3: 5 6",
+      "d. Nit 0: 4 3 / Nit 1: 4 4 / Nit 2: 4 5 / Nit 3: 4 6"
+    ],
+    correct: 2,
+    explanation: "Svaka nit dobija privatnu kopiju inicijalizovanu na 5 (firstprivate). Štampa 5, zatim a = thread_num + 3. Nit 0: 5 3, Nit 1: 5 4, Nit 2: 5 5, Nit 3: 5 6."
+  },
+  {
+    section: null,
+    text: "Šta će od ponuđenog sledeći OpenMP kod prikazati, ako se izvrši nad 4 niti?<br><small>(printf koristi a-1 u prvom pozivu)</small>",
+    code: `int a = 5;
+#pragma omp parallel firstprivate(a)
+{
+    printf("%d ", a - 1);
+    a = omp_get_thread_num() + 3;
+    printf("%d", a);
+}`,
+    img: null,
+    options: [
+      "a. Nit 0: 3 3 / Nit 1: 4 4 / Nit 2: 5 5 / Nit 3: 6 6",
+      "b. Nit 0: 0 3 / Nit 1: 0 4 / Nit 2: 0 5 / Nit 3: 0 6",
+      "c. Nit 0: 3 3 / Nit 1: 4 4 / Nit 2: 5 5 / Nit 3: 6 6 (isto kao a)",
+      "d. Nit 0: 4 3 / Nit 1: 4 4 / Nit 2: 4 5 / Nit 3: 4 6"
+    ],
+    correct: 3,
+    explanation: "a je 5 (firstprivate), pa a-1=4. Svaka nit štampa 4 prvi put, zatim a = thread_num + 3. Nit 0: 4 3, Nit 1: 4 4, Nit 2: 4 5, Nit 3: 4 6."
+  },
+
+  // ══════════ SEKCIJA 7: Greška u kodu ══════════
+  {
+    section: "Pronađi grešku u kodu",
+    text: "U kojoj liniji isečka koda se nalazi greška? (reduction(/:sum) private(t))",
+    code: `1: #define NUM_THR 2
+2: void main()
+3: {
+4:   int sum = 0;
+5:   omp_set_num_threads(NUM_THR)
+6:   #pragma omp parallel for reduction(/:sum) private(t)
+7:   for (int i = 0; i < 1000; i++) {
+8:     t = func(i);
+9:     sum+= t;
+10: }
+11: printf("%d", sum);
+12: }`,
+    img: null,
+    options: ["a. 1", "b. 6", "c. 8", "d. 9", "e. 5", "f. 7"],
+    correct: 1,
+    explanation: "Linija 6: <code>reduction(/:sum)</code> – operator <code>/</code> (deljenje) nije validan OpenMP reduction operator. Treba koristiti: +, *, -, &, |, ^, &&, ||."
+  },
+  {
+    section: null,
+    text: "U kojoj liniji isečka koda se nalazi greška? (reduction(+:sum) public(t))",
+    code: `1: #define NUM_THR 2
+2: void main()
+3: {
+4:   int sum = 0;
+5:   omp_set_num_threads(NUM_THR)
+6:   #pragma omp parallel for reduction(+:sum) public(t)
+7:   for (int i = 0; i < 1000; i++) {
+8:     t = func(i);
+9:     sum+= t;
+10: }
+11: printf("%d", sum);
+12: }`,
+    img: null,
+    options: ["a. 9", "b. 8", "c. 7", "d. 5", "e. 6", "f. 1"],
+    correct: 4,
+    explanation: "Linija 6: <code>public(t)</code> – ne postoji klauzula <code>public</code> u OpenMP. Pravilne klauzule su: private, shared, firstprivate, lastprivate."
+  },
+  {
+    section: null,
+    text: "U kojoj liniji isečka koda se nalazi greška? (omp_set_number_of_threads)",
+    code: `1: #define NUM_THR 2
+2: void main()
+3: {
+4:   int sum = 0;
+5:   omp_set_number_of_threads(NUM_THR)
+6:   #pragma omp parallel for reduction(+:sum) private(t)
+7:   for (int i = 0; i < 1000; i++) {
+8:     t = func(i);
+9:     sum+= t;
+10: }
+11: printf("%d", sum);
+12: }`,
+    img: null,
+    options: ["a. 8", "b. 1", "c. 9", "d. 7", "e. 5", "f. 6"],
+    correct: 4,
+    explanation: "Linija 5: Pogrešan naziv funkcije. Ispravno je <code>omp_set_num_threads()</code>, a ne <code>omp_set_number_of_threads()</code>."
+  },
+  {
+    section: null,
+    text: "U kojoj liniji isečka koda se nalazi greška? (#pragma omp singlethread)",
+    code: `1:  int i;
+2:  #pragma omp parallel shared(a,b,n) private(i)
+3:  {
+4:    #pragma omp for
+5:      for (i = 0; i < n; i++)
+6:        a[i] = 1.0 / a[i];
+7:    #pragma omp singlethread
+8:      a[0] = MIN( a[0], 1.0 );
+9:    #pragma omp for nowait
+10:     for (i = 0; i < n; i++)
+11:       b[i] = b[i] / a[i];
+12: }`,
+    img: null,
+    options: ["a. 8", "b. 4", "c. 9", "d. 2", "e. 7"],
+    correct: 4,
+    explanation: "Linija 7: Ne postoji direktiva <code>#pragma omp singlethread</code>. Ispravno je <code>#pragma omp single</code>."
+  },
+
+  // ══════════ SEKCIJA 8: barrier/schedule ══════════
+  {
+    section: "Barrier i schedule",
+    text: "Koja od datih tvrdnji je tačna, ako se posmatra OpenMP primer u nastavku?",
+    code: `#pragma omp parallel for schedule(static)
+{
+    int id = omp_get_thread_num();
+    A[id] = function(id);
+    #pragma omp barrier
+    B[id] = function_2(id, A);
+}`,
+    img: null,
+    options: [
+      "a. U datom primeru nema potrebe koristiti barrier direktivu, jer nema potrebe za sinhronizacijom",
+      "b. U datom primeru je neophodno koristiti barrier direktivu, zbog potrebe za sinhronizacijom između dva poziva funkcije"
+    ],
+    correct: 1,
+    explanation: "<b>barrier</b> je ovde neophodan: <code>function_2</code> koristi niz <code>A</code> koji pune SVE niti. Bez barijere, neka nit bi mogla čitati A[id] pre nego što ga je druga nit popunila."
+  },
+
+  // ══════════ SEKCIJA 9: Ostala pitanja ══════════
+  {
+    section: "Mešovita pitanja",
+    text: "Da li će nakon izvršenog paralelnog bloka da bude odštampano <b>5</b>? (lastprivate(i))",
+    code: `int i = 1;
+#pragma omp parallel for lastprivate(i) private(m)
+for (m = 2; m < 5; m++)
+{
+    #pragma omp barrier
+    i = m;
+}
+printf("%d", i);`,
+    img: null,
+    options: ["a. Ne.", "b. Da."],
+    correct: 0,
+    explanation: "<b>lastprivate(i)</b> upisuje vrednost <code>i</code> iz poslednje iteracije. Poslednja iteracija: m=4, i=4. Štampa se <b>4</b>, ne 5."
+  },
+  {
+    section: null,
+    text: "Da li će nakon izvršenog paralelnog bloka da bude odštampano <b>24</b>? (private(m), barrier)",
+    code: `int i = 1;
+#pragma omp parallel for private(m)
+for (m = 2; m < 5; m++)
+{
+    #pragma omp barrier
+    i *= m;
+}
+printf("%d", &i);`,
+    img: null,
+    options: ["a. Ne.", "b. Da."],
+    correct: 1,
+    explanation: "<code>i</code> je shared, barijera sinhronizuje niti, i množenje ide 1×2×3×4=24."
+  },
+  {
+    section: null,
+    text: "Koja od datih tvrdnji je tačna (private(i, a), petlja u paralelnom bloku)?",
+    code: `int a = 100;
+#pragma omp parallel for private(i, a)
+for (i=0; i<n; i++)
+{
+    printf("%d", a);
+    a = i+1;
+}
+// vrednost a?`,
+    img: null,
+    options: [
+      "a. Odštampana vrednost u niti 0 će biti 100",
+      "b. Odštampana vrednost u niti 0 će biti 0",
+      "c. Odštampana vrednost u niti 0 će biti n"
+    ],
+    correct: 1,
+    explanation: "<b>private(a)</b> znači da se privatna kopija <em>ne inicijalizuje</em> vrednošću originalne promenljive. Vrednost je nedefinisana (neodređena), a u praksi na stack-u bude 0 ili garbage."
+  },
+];
+
+// ──────────────────────────────────────────────────────────────
+//  STATE
+// ──────────────────────────────────────────────────────────────
+let userAnswers = new Array(questions.length).fill(null);
+let submitted   = false;
+
+// ──────────────────────────────────────────────────────────────
+//  BUILD UI
+// ──────────────────────────────────────────────────────────────
+function buildQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  let lastSection = null;
+
+  questions.forEach((q, qi) => {
+    // Section divider
+    if (q.section && q.section !== lastSection) {
+      const div = document.createElement('div');
+      div.className = 'section-divider';
+      div.innerHTML = `<hr><span>${q.section}</span><hr>`;
+      container.appendChild(div);
+      lastSection = q.section;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `q-card-${qi}`;
+
+    // Header
+    let codeHTML = '';
+    if (q.code) {
+      codeHTML = `<div class="code-block">${escCode(q.code)}</div>`;
+    }
+
+    let imgHTML = '';
+    if (q.img) {
+      imgHTML = `<div class="img-slot"><img src="${q.img}" alt="Slika za pitanje ${qi+1}"></div>`;
+    }
+
+    // Options
+    const optsHTML = q.options.map((opt, oi) => `
+      <div class="option" id="q${qi}-opt${oi}" onclick="selectOption(${qi}, ${oi})">
+        <div class="opt-radio"></div>
+        <div class="opt-label">${opt}</div>
+        <div class="opt-icon" id="q${qi}-icon${oi}"></div>
+      </div>`).join('');
+
+    card.innerHTML = `
+      <div class="q-header">
+        <div class="q-number">Q${String(qi+1).padStart(2,'0')}</div>
+        <div class="q-text">${q.text}</div>
+      </div>
+      ${codeHTML}${imgHTML}
+      <div class="options" id="opts-${qi}">${optsHTML}</div>
+      <button class="btn-check" onclick="checkQuestion(${qi})">Proveri odgovor</button>
+      <div class="explanation" id="exp-${qi}"></div>
+    `;
+
+    container.appendChild(card);
+  });
+
+  updateProgress();
+}
+
+function escCode(str) {
+  return str
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+// ──────────────────────────────────────────────────────────────
+//  INTERACTION
+// ──────────────────────────────────────────────────────────────
+function selectOption(qi, oi) {
+  if (submitted) return;
+  if (userAnswers[qi] !== null) {
+    // deselect previous
+    const prev = document.getElementById(`q${qi}-opt${userAnswers[qi]}`);
+    if (prev) prev.classList.remove('selected');
+  }
+  userAnswers[qi] = oi;
+  document.getElementById(`q${qi}-opt${oi}`).classList.add('selected');
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = userAnswers.filter(a => a !== null).length;
+  const pct = questions.length ? (answered / questions.length * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${answered} / ${questions.length}`;
+}
+
+
+// Provera pojedinačnog pitanja
+function checkQuestion(qi) {
+  const chosen = userAnswers[qi];
+  if (chosen === null) {
+    alert('Prvo izaberi odgovor.');
+    return;
+  }
+
+  const q = questions[qi];
+  const card = document.getElementById(`q-card-${qi}`);
+  const expEl = document.getElementById(`exp-${qi}`);
+
+  // Ako je već provereno, ne radi ništa
+  if (card.classList.contains('answered-correct') ||
+      card.classList.contains('answered-wrong')) return;
+
+  const isCorrect = chosen === q.correct;
+
+  for (let oi = 0; oi < q.options.length; oi++) {
+    const optEl = document.getElementById(`q${qi}-opt${oi}`);
+    const icon  = document.getElementById(`q${qi}-icon${oi}`);
+
+    if (oi === q.correct && chosen !== q.correct) {
+      optEl.classList.add('reveal-correct');
+      icon.textContent = '✓';
+    }
+    if (oi === chosen) {
+      if (isCorrect) {
+        optEl.classList.add('correct');
+        icon.textContent = '✓';
+      } else {
+        optEl.classList.add('wrong');
+        icon.textContent = '✗';
+      }
+    }
+    optEl.classList.add('disabled');
+  }
+
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  expEl.innerHTML = q.explanation;
+  expEl.classList.add('show');
+  expEl.classList.add(isCorrect ? 'correct-exp' : 'wrong-exp');
+}
+
+// ──────────────────────────────────────────────────────────────
+//  SUBMIT
+// ──────────────────────────────────────────────────────────────
+function submitQuiz() {
+  if (submitted) return;
+  const unanswered = userAnswers.filter(a => a === null).length;
+  if (unanswered > 0) {
+    if (!confirm(`Nisi odgovorio na ${unanswered} pitanje(a). Ipak predaj?`)) return;
+  }
+  submitted = true;
+  document.getElementById('btn-submit').style.display = 'none';
+
+  let correct = 0, wrong = 0;
+
+  questions.forEach((q, qi) => {
+    const card   = document.getElementById(`q-card-${qi}`);
+    const expEl  = document.getElementById(`exp-${qi}`);
+    const chosen = userAnswers[qi];
+    const right  = q.correct;
+    const isCorrect = chosen === right;
+
+    if (chosen !== null) isCorrect ? correct++ : wrong++;
+
+    // Style options
+    for (let oi = 0; oi < q.options.length; oi++) {
+      const optEl = document.getElementById(`q${qi}-opt${oi}`);
+      const icon  = document.getElementById(`q${qi}-icon${oi}`);
+      optEl.classList.add('disabled');
+      if (oi === right && chosen !== right) {
+        optEl.classList.add('reveal-correct');
+        icon.textContent = '✓';
+      }
+      if (oi === chosen) {
+        if (isCorrect) { optEl.classList.add('correct'); icon.textContent = '✓'; }
+        else           { optEl.classList.add('wrong');   icon.textContent = '✗'; }
+      }
+    }
+
+    // Card border
+    if (chosen !== null) {
+      card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+    }
+
+    // Explanation
+    if (q.explanation) {
+      expEl.innerHTML = q.explanation;
+      expEl.classList.add('show');
+      expEl.classList.add(isCorrect ? 'correct-exp' : 'wrong-exp');
+    }
+  });
+
+  // Results
+  const total = questions.length;
+  const pct   = Math.round(correct / total * 100);
+  document.getElementById('score-pct').textContent = pct + '%';
+  document.getElementById('score-text').textContent =
+    pct >= 90 ? '🏆 Odlično! Savladao si OpenMP!' :
+    pct >= 70 ? '👍 Dobro! Malo više vežbe i biće super.' :
+    pct >= 50 ? '📖 Prođi još jednom kroz materijal.' :
+                '💡 Proučavaj OpenMP direktivno – može biti!';
+  document.getElementById('r-correct').textContent = correct;
+  document.getElementById('r-wrong').textContent   = wrong;
+  document.getElementById('r-total').textContent   = total;
+
+  const resultsPanel = document.getElementById('results-panel');
+  resultsPanel.classList.add('show');
+  resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Final progress 100%
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('progress-label').textContent = `${total} / ${total}`;
+}
+
+// ──────────────────────────────────────────────────────────────
+//  RETRY
+// ──────────────────────────────────────────────────────────────
+function retryQuiz() {
+  userAnswers = new Array(questions.length).fill(null);
+  submitted   = false;
+  document.getElementById('results-panel').classList.remove('show');
+  document.getElementById('btn-submit').style.display = '';
+  buildQuiz();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ──────────────────────────────────────────────────────────────
+//  INIT
+// ──────────────────────────────────────────────────────────────
+buildQuiz();
+</script>
+</body>
+</html>
